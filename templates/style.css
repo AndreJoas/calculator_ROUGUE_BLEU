@@ -1,0 +1,25 @@
+#resultados {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+#resultados_rouge, #resultados_blue {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.blue-score {
+    margin-bottom: 10px;
+}
+
+h4 {
+    color: #007bff;
+}
+
+p {
+    font-size: 16px;
+    color: #333;
+}

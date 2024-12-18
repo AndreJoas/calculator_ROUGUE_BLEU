@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora ROUGE & BLEU</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 48%;
+        }
+
+        h3 {
+            text-align: center;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+        }
+
+        .metric-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .blue-score,
+        .rouge-score {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin: 5px 0;
+        }
+
+        #input_text,
+        #similar_answer {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Calculadora de Similaridade Semâtica (ROUGE e BLEU )</h1>
+
+    <div class="container">
+        <!-- Input section -->
+        <div class="box">
+            <textarea id="input_text" placeholder="Digite seu texto aqui..." rows="5"></textarea><br><br>
+            <button onclick="buscarResposta()">Procurar Resposta Mais Semelhante</button><br><br>
+            <textarea id="similar_answer" placeholder="Resposta mais semelhante aparecerá aqui..." rows="5"
+                readonly></textarea><br><br>
+            <button onclick="calculateRouge()">Calcular ROUGE</button>
+            <button onclick="calcularBlue()">Calcular BLUE</button>
+        </div>
+
+        <!-- Results section -->
+        <div class="box">
+            <h3>Resultados</h3>
+
+            <!-- ROUGE -->
+            <div class="rouge-score">
+                <h4 class="metric-title">Resultados ROUGE:</h4>
+                <div class="result-item">
+                    <strong>ROUGE-1:</strong>
+                    <p><strong>Precision:</strong> <span id="rouge1_precision"></span></p>
+                    <p><strong>Recall:</strong> <span id="rouge1_recall"></span></p>
+                    <p><strong>F1:</strong> <span id="rouge1_f1"></span></p>
+                </div>
+
+                <div class="result-item">
+                    <strong>ROUGE-2:</strong>
+                    <p><strong>Precision:</strong> <span id="rouge2_precision"></span></p>
+                    <p><strong>Recall:</strong> <span id="rouge2_recall"></span></p>
+                    <p><strong>F1:</strong> <span id="rouge2_f1"></span></p>
+                </div>
+
+                <div class="result-item">
+                    <strong>ROUGE-L:</strong>
+                    <p><strong>Precision:</strong> <span id="rougeL_precision"></span></p>
+                    <p><strong>Recall:</strong> <span id="rougeL_recall"></span></p>
+                    <p><strong>F1:</strong> <span id="rougeL_f1"></span></p>
+                </div>
+            </div>
+
+            <!-- BLUE -->
+            <div class="blue-score">
+                <h4 class="metric-title">Resultados BLEU:</h4>
+                <div class="result-item">
+                    <strong>BLEU-1:</strong>
+                    <p><strong>Precision:</strong> <span id="blue1_precision"></span></p>
+                    <p><strong>Recall:</strong> <span id="recall_1"></span></p>
+                    <p><strong>F1:</strong> <span id="f1_1"></span></p>
+                </div>
+
+                <div class="result-item">
+                    <strong>BLEU-2:</strong>
+                    <p><strong>Precision:</strong> <span id="blue2_precision"></span></p>
+                    <p><strong>Recall:</strong> <span id="recall_2"></span></p>
+                    <p><strong>F1:</strong> <span id="f1_2"></span></p>
+                </div>
+
+                <div class="result-item">
+                    <strong>BLEU-L:</strong>
+                    <p><strong>Precision:</strong> <span id="blueL_precision"></span></p>
+                    <p><strong>Recall:</strong> <span id="recall_L"></span></p>
+                    <p><strong>F1:</strong> <span id="f1_L"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function buscarResposta() {
+            const inputText = document.getElementById('input_text').value;
+            const response = await fetch("/find", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ input_text: inputText })
+            });
+            const data = await response.json();
+            document.getElementById('similar_answer').value = data.similar_answer;
+        }
+
+        async function calculateRouge() {
+            const text1 = document.getElementById('input_text').value;
+            const text2 = document.getElementById('similar_answer').value;
+
+            const response = await fetch("/rouge", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text1, text2 })
+            });
+
+            const data = await response.json();
+
+            // ROUGE-1
+            document.getElementById('rouge1_precision').textContent = data.rouge1.precision.toFixed(4);
+            document.getElementById('rouge1_recall').textContent = data.rouge1.recall.toFixed(4);
+            document.getElementById('rouge1_f1').textContent = data.rouge1.f1.toFixed(4);
+
+            // ROUGE-2
+            document.getElementById('rouge2_precision').textContent = data.rouge2.precision.toFixed(4);
+            document.getElementById('rouge2_recall').textContent = data.rouge2.recall.toFixed(4);
+            document.getElementById('rouge2_f1').textContent = data.rouge2.f1.toFixed(4);
+
+            // ROUGE-L
+            document.getElementById('rougeL_precision').textContent = data.rougeL.precision.toFixed(4);
+            document.getElementById('rougeL_recall').textContent = data.rougeL.recall.toFixed(4);
+            document.getElementById('rougeL_f1').textContent = data.rougeL.f1.toFixed(4);
+        }
+
+        async function calcularBlue() {
+    const referenceText = document.getElementById('similar_answer').value;
+    const candidateText = document.getElementById('input_text').value;
+
+    const response = await fetch("/blue", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ reference_text: referenceText, candidate_text: candidateText })
+    });
+
+    const data = await response.json();
+
+    console.log(data); // Verifique os valores retornados pelo backend
+
+    // BLEU-1
+    document.getElementById('blue1_precision').textContent = data.blue1.toFixed(4);
+    document.getElementById('recall_1').textContent = data.recall_1.toFixed(4);
+    document.getElementById('f1_1').textContent = data.f1_1.toFixed(4);
+
+    // BLEU-2
+    document.getElementById('blue2_precision').textContent = data.blue2.toFixed(4);
+    document.getElementById('recall_2').textContent = data.recall_2.toFixed(4);
+    document.getElementById('f1_2').textContent = data.f1_2.toFixed(4);
+
+    // BLEU-L
+    document.getElementById('blueL_precision').textContent = data.blueL.toFixed(4);
+    document.getElementById('recall_L').textContent = data.recall_L.toFixed(4);
+    document.getElementById('f1_L').textContent = data.f1_L.toFixed(4);
+}
+
+
+    </script>
+</body>
+
+</html>
